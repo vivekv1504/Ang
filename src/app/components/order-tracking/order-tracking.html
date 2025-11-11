@@ -1,0 +1,205 @@
+<div class="tracking-container">
+  <nav class="tracking-nav">
+    <div class="nav-content">
+      <h1 class="logo">🍷 SipStop</h1>
+      <div class="nav-actions">
+        <span class="welcome">Welcome, {{ userName }}</span>
+        <button class="btn-profile" routerLink="/profile">
+          👤 Profile
+        </button>
+        <button class="btn-back" (click)="goBack()">
+          🏠 Shop
+        </button>
+        <button class="btn-logout" (click)="logout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="tracking-content">
+    <div class="header-section">
+      <div class="header-text">
+        <h2>📦 My Orders</h2>
+        <p>Track and manage your orders</p>
+      </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-section">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange()"
+        placeholder="Search by order number or product..."
+        class="search-input"
+      />
+      
+      <select
+        [(ngModel)]="filterStatus"
+        (ngModelChange)="onStatusChange()"
+        class="status-select"
+      >
+        <option *ngFor="let status of statusOptions" [value]="status">
+          {{ status === 'all' ? 'All Statuses' : status }}
+        </option>
+      </select>
+    </div>
+
+    <!-- No Orders Message -->
+    <div *ngIf="filteredOrders.length === 0 && userOrders.length === 0" class="no-orders">
+      <div class="no-orders-icon">📦</div>
+      <h3>No Orders Yet</h3>
+      <p>Start shopping to see your orders here!</p>
+      <button class="btn-shop" (click)="goBack()">
+        Start Shopping
+      </button>
+    </div>
+
+    <!-- No Results Message -->
+    <div *ngIf="filteredOrders.length === 0 && userOrders.length > 0" class="no-results">
+      <p>No orders found matching your search</p>
+    </div>
+
+    <!-- Orders Grid -->
+    <div class="orders-grid" *ngIf="filteredOrders.length > 0">
+      <div *ngFor="let order of filteredOrders" class="order-card">
+        <div class="order-header">
+          <div class="order-info">
+            <h3>{{ order.orderNumber }}</h3>
+            <p class="order-date">{{ formatDate(order.date) }}</p>
+          </div>
+          <div class="order-status" [ngClass]="getStatusClass(order.status)">
+            <span class="status-icon">{{ getStatusIcon(order.status) }}</span>
+            <span class="status-text">{{ order.status }}</span>
+          </div>
+        </div>
+
+        <div class="order-items">
+          <div *ngFor="let item of order.items.slice(0, 3)" class="order-item">
+            <img [src]="item.product.image" [alt]="item.product.name" class="item-image">
+            <div class="item-details">
+              <p class="item-name">{{ item.product.name }}</p>
+              <p class="item-qty">Qty: {{ item.quantity }}</p>
+            </div>
+          </div>
+          <p *ngIf="order.items.length > 3" class="more-items">
+            +{{ order.items.length - 3 }} more items
+          </p>
+        </div>
+
+        <div class="tracking-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="getTrackingProgress(order.status)"></div>
+          </div>
+        </div>
+
+        <div class="order-footer">
+          <div class="order-total">
+            <span>Total:</span>
+            <strong>${{ order.total.toFixed(2) }}</strong>
+          </div>
+          <button class="btn-details" (click)="viewOrderDetails(order)">
+            View Details →
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Details Modal -->
+  <div class="modal-overlay" *ngIf="selectedOrder" (click)="closeOrderDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Order Details</h2>
+        <button class="btn-close" (click)="closeOrderDetails()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="detail-section">
+          <h3>Order Information</h3>
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Order Number:</label>
+              <span>{{ selectedOrder.orderNumber }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Order Date:</label>
+              <span>{{ formatDate(selectedOrder.date) }}</span>
+            </div>
+            <div class="detail-item">
+              <label>Status:</label>
+              <span class="order-status-inline" [ngClass]="getStatusClass(selectedOrder.status)">
+                {{ getStatusIcon(selectedOrder.status) }} {{ selectedOrder.status }}
+              </span>
+            </div>
+            <div class="detail-item">
+              <label>Total Amount:</label>
+              <span class="total-amount">${{ selectedOrder.total.toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>Items Ordered</h3>
+          <div class="modal-items">
+            <div *ngFor="let item of selectedOrder.items" class="modal-item">
+              <img [src]="item.product.image" [alt]="item.product.name" class="modal-item-image">
+              <div class="modal-item-details">
+                <p class="modal-item-name">{{ item.product.name }}</p>
+                <p class="modal-item-price">${{ item.product.price.toFixed(2) }} × {{ item.quantity }}</p>
+              </div>
+              <div class="modal-item-total">
+                ${{ (item.product.price * item.quantity).toFixed(2) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section" *ngIf="selectedOrder.shippingInfo">
+          <h3>Shipping Information</h3>
+          <div class="shipping-info">
+            <p><strong>{{ selectedOrder.shippingInfo.fullName }}</strong></p>
+            <p>{{ selectedOrder.shippingInfo.address }}</p>
+            <p>{{ selectedOrder.shippingInfo.city }}, {{ selectedOrder.shippingInfo.state }} {{ selectedOrder.shippingInfo.zipCode }}</p>
+            <p>{{ selectedOrder.shippingInfo.email }}</p>
+            <p>{{ selectedOrder.shippingInfo.phone }}</p>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <h3>Tracking Status</h3>
+          <div class="tracking-timeline">
+            <div class="timeline-item" [class.active]="getTrackingProgress(selectedOrder.status) >= 25">
+              <div class="timeline-dot">⏳</div>
+              <div class="timeline-content">
+                <p class="timeline-title">Order Placed</p>
+                <p class="timeline-date">{{ formatDate(selectedOrder.date) }}</p>
+              </div>
+            </div>
+            <div class="timeline-item" [class.active]="getTrackingProgress(selectedOrder.status) >= 50">
+              <div class="timeline-dot">📦</div>
+              <div class="timeline-content">
+                <p class="timeline-title">Processing</p>
+                <p class="timeline-date" *ngIf="getTrackingProgress(selectedOrder.status) >= 50">In progress</p>
+              </div>
+            </div>
+            <div class="timeline-item" [class.active]="getTrackingProgress(selectedOrder.status) >= 75">
+              <div class="timeline-dot">🚚</div>
+              <div class="timeline-content">
+                <p class="timeline-title">Shipped</p>
+                <p class="timeline-date" *ngIf="getTrackingProgress(selectedOrder.status) >= 75">On the way</p>
+              </div>
+            </div>
+            <div class="timeline-item" [class.active]="getTrackingProgress(selectedOrder.status) >= 100">
+              <div class="timeline-dot">✅</div>
+              <div class="timeline-content">
+                <p class="timeline-title">Delivered</p>
+                <p class="timeline-date" *ngIf="getTrackingProgress(selectedOrder.status) >= 100">Completed</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

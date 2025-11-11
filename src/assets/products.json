@@ -54,15 +54,6 @@
     "image": "https://images.unsplash.com/photo-1618885472179-5e474019f2a9?w=400"
   },
   {
-    "id": 7,
-    "name": "8PM",
-    "category": "Brandy",
-    "price": 330,
-    "description": "8PM is Invented by Y.S.Jagan Mohan Reddy",
-    "stock": 39,
-    "image": "https://www.google.com/url?sa=i&url=https%3A%2F%2Fsipdirect.com%2Fproducts%2Fmansion-house-finest-quality-matured-french-brandy&psig=AOvVaw2dRzcg0yFEb1AVssbF9s0r&ust=1762362184744000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCND2xPH82JADFQAAAAAdAAAAABAE"
-  },
-  {
     "id": 8,
     "name": "Black Label",
     "category": "whisky",
@@ -86,7 +77,7 @@
     "category": "Bheer",
     "price": 20,
     "description": "A light, crisp Mexican beer best served with a wedge of lime.",
-    "stock": 100,
+    "stock": 99,
     "image": "https://images.unsplash.com/photo-1646727029432-f718c739f64e?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=774"
   },
   {
@@ -95,7 +86,34 @@
     "category": "Bheer",
     "price": 190,
     "description": "Strong and smooth beer brewed with the finest barley malt.",
-    "stock": 100,
+    "stock": 99,
     "image": "https://images.unsplash.com/photo-1607348985526-377b33c8d277?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=774"
+  },
+  {
+    "id": 12,
+    "name": "BRO CODE ",
+    "category": "Bheer",
+    "price": 220,
+    "description": "Bro code is the new barnded in bheers ,it also have high alcohol percentage.",
+    "stock": 15,
+    "image": "https://media.istockphoto.com/id/496361012/photo/pint-of-beer-and-shot-of-whiskey-on-bar.jpg?s=1024x1024&w=is&k=20&c=xGKNE8Itn9UgPTZXx87C4YcpVk81HrDt5Ry1y3DVN90="
+  },
+  {
+    "id": 13,
+    "name": "Budwiser",
+    "category": "Bheer",
+    "price": 200,
+    "description": "Balanced taste with a smooth, clean finish. Perfect for casual gatherings",
+    "stock": 100,
+    "image": "https://images.unsplash.com/photo-1563551340713-0c45b08556b6?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=774"
+  },
+  {
+    "id": 14,
+    "name": "Jose Cuervo",
+    "category": "Tequila",
+    "price": 200,
+    "description": "Traditional tequila with a smooth agave taste and hints of caramel. Great for shots or margaritas.",
+    "stock": 50,
+    "image": "https://images.unsplash.com/photo-1566086113086-6d8701d1d4db?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=928"
   }
 ]

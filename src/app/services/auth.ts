@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 import { User } from '../models/user';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -43,7 +44,7 @@ export class AuthService {
   }
 
   signup(user: User): Observable<{ success: boolean; message?: string }> {
-    const apiUrl = 'http://localhost:3000/api/users';
+    const apiUrl = `${environment.apiUrl}/api/users`;
     
     // Try backend API first
     return this.http.post<any>(apiUrl, user).pipe(
@@ -177,5 +178,57 @@ export class AuthService {
   isCustomer(): boolean {
     const user = this.currentUserSubject.value;
     return user?.role === 'customer';
+  }
+
+  updateUserProfile(userId: number, updatedData: Partial<User>): Observable<{ success: boolean; message?: string; user?: User }> {
+    const apiUrl = `${environment.apiUrl}/api/users/${userId}`;
+    
+    // Try backend API first
+    return this.http.put<any>(apiUrl, updatedData).pipe(
+      map(response => {
+        if (response.success) {
+          console.log('✅ User profile updated:', response.user);
+          // Update current user if it's the same user
+          const currentUser = this.currentUserSubject.value;
+          if (currentUser && currentUser.id === userId) {
+            const updatedUser = { ...currentUser, ...response.user };
+            sessionStorage.setItem('currentUser', JSON.stringify(updatedUser));
+            this.currentUserSubject.next(updatedUser);
+          }
+          return { success: true, user: response.user };
+        } else {
+          return { success: false, message: response.error || 'Update failed' };
+        }
+      }),
+      catchError(error => {
+        console.log('⚠️ Backend not available, using localStorage');
+        // Fallback to localStorage
+        return this.updateUserProfileLocally(userId, updatedData);
+      })
+    );
+  }
+
+  private updateUserProfileLocally(userId: number, updatedData: Partial<User>): Observable<{ success: boolean; message?: string; user?: User }> {
+    const localUsers = this.getLocalStorageUsers();
+    const userIndex = localUsers.findIndex(u => u.id === userId);
+    
+    if (userIndex !== -1) {
+      // Update user
+      localUsers[userIndex] = { ...localUsers[userIndex], ...updatedData };
+      this.saveToLocalStorage(localUsers);
+      
+      // Update current user if it's the same user
+      const currentUser = this.currentUserSubject.value;
+      if (currentUser && currentUser.id === userId) {
+        const updatedUser = { ...currentUser, ...localUsers[userIndex] };
+        sessionStorage.setItem('currentUser', JSON.stringify(updatedUser));
+        this.currentUserSubject.next(updatedUser);
+      }
+      
+      console.log('✅ User profile updated (localStorage):', localUsers[userIndex]);
+      return of({ success: true, user: localUsers[userIndex] });
+    } else {
+      return of({ success: false, message: 'User not found' });
+    }
   }
 }

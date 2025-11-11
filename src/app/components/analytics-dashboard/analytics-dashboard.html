@@ -1,0 +1,178 @@
+<div class="analytics-container">
+  <nav class="analytics-nav">
+    <div class="nav-content">
+      <h1 class="logo">📊 SipStop Analytics</h1>
+      <div class="nav-actions">
+        <span class="welcome">Welcome, {{ userName }}</span>
+        <button class="btn-products" (click)="goToProductManagement()">
+          📦 Products
+        </button>
+        <button class="btn-profile" routerLink="/profile">
+          👤 Profile
+        </button>
+        <button class="btn-logout" (click)="logout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="analytics-content">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon revenue-icon">💰</div>
+        <div class="stat-details">
+          <p class="stat-label">Total Revenue</p>
+          <h2 class="stat-value">${{ stats.totalRevenue.toFixed(2) }}</h2>
+          <p class="stat-change" [class.positive]="stats.revenueGrowth >= 0" [class.negative]="stats.revenueGrowth < 0">
+            {{ stats.revenueGrowth >= 0 ? '↑' : '↓' }} {{ Math.abs(stats.revenueGrowth).toFixed(1) }}% from last month
+          </p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon orders-icon">📦</div>
+        <div class="stat-details">
+          <p class="stat-label">Total Orders</p>
+          <h2 class="stat-value">{{ stats.totalOrders }}</h2>
+          <p class="stat-change" [class.positive]="stats.ordersGrowth >= 0" [class.negative]="stats.ordersGrowth < 0">
+            {{ stats.ordersGrowth >= 0 ? '↑' : '↓' }} {{ Math.abs(stats.ordersGrowth).toFixed(1) }}% from last month
+          </p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon avg-icon">📈</div>
+        <div class="stat-details">
+          <p class="stat-label">Avg. Order Value</p>
+          <h2 class="stat-value">${{ stats.averageOrderValue.toFixed(2) }}</h2>
+          <p class="stat-change neutral">Per order average</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon products-icon">🍷</div>
+        <div class="stat-details">
+          <p class="stat-label">Total Products</p>
+          <h2 class="stat-value">{{ stats.totalProducts }}</h2>
+          <p class="stat-change neutral">In inventory</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="charts-row">
+      <!-- Monthly Revenue Chart -->
+      <div class="chart-card">
+        <h3 class="chart-title">📊 Monthly Revenue Trend</h3>
+        <div class="bar-chart">
+          <div *ngFor="let month of monthlyRevenue" class="bar-item">
+            <div class="bar-wrapper">
+              <div 
+                class="bar" 
+                [style.height.%]="getMonthlyBarHeight(month.revenue)"
+                [title]="'$' + month.revenue.toFixed(2)">
+              </div>
+            </div>
+            <div class="bar-label">{{ month.month }}</div>
+            <div class="bar-value">${{ month.revenue.toFixed(0) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Revenue Chart -->
+      <div class="chart-card">
+        <h3 class="chart-title">🏷️ Revenue by Category</h3>
+        <div class="horizontal-bar-chart">
+          <div *ngFor="let cat of categoryData" class="h-bar-item">
+            <div class="h-bar-label">{{ cat.category }}</div>
+            <div class="h-bar-wrapper">
+              <div 
+                class="h-bar" 
+                [style.width.%]="getRevenueBarWidth(cat.revenue)">
+              </div>
+            </div>
+            <div class="h-bar-value">${{ cat.revenue.toFixed(0) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tables Row -->
+    <div class="tables-row">
+      <!-- Top Products -->
+      <div class="table-card">
+        <h3 class="table-title">🏆 Top Selling Products</h3>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Sold</th>
+                <th>Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of topProducts; let i = index">
+                <td>
+                  <div class="product-cell">
+                    <span class="rank">{{ i + 1 }}</span>
+                    <img [src]="item.product.image" [alt]="item.product.name" class="product-thumb">
+                    <span class="product-name">{{ item.product.name }}</span>
+                  </div>
+                </td>
+                <td class="text-center">
+                  <span class="badge badge-blue">{{ item.sold }} units</span>
+                </td>
+                <td class="text-right">
+                  <strong class="revenue-text">${{ item.revenue.toFixed(2) }}</strong>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div *ngIf="topProducts.length === 0" class="empty-state">
+            <p>No sales data available yet</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Orders -->
+      <div class="table-card">
+        <h3 class="table-title">🕒 Recent Orders</h3>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let order of recentOrders">
+                <td>
+                  <strong>{{ order.orderNumber }}</strong>
+                </td>
+                <td>{{ order.customerName }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="getStatusClass(order.status)">
+                    {{ order.status }}
+                  </span>
+                </td>
+                <td class="text-right">
+                  <strong>${{ order.total.toFixed(2) }}</strong>
+                </td>
+                <td class="text-muted">{{ formatDate(order.date) }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div *ngIf="recentOrders.length === 0" class="empty-state">
+            <p>No orders yet</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

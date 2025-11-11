@@ -4,6 +4,12 @@
       <h1 class="logo">🍷 SipStop</h1>
       <div class="nav-actions">
         <span class="welcome">Welcome, {{ userName }}</span>
+        <button class="btn-orders" routerLink="/order-tracking">
+          📦 My Orders
+        </button>
+        <button class="btn-profile" routerLink="/profile">
+          👤 Profile
+        </button>
         <button class="btn-cart" (click)="goToCart()">
           🛒 Cart ({{ cartCount }})
         </button>

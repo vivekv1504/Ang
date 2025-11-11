@@ -5,6 +5,9 @@ import { AdminDashboardComponent } from './components/admin-dashboard/admin-dash
 import { CustomerProductsComponent } from './components/customer-products/customer-products';
 import { CartComponent } from './components/cart/cart';
 import { CheckoutComponent } from './components/checkout/checkout';
+import { ProfileComponent } from './components/profile/profile';
+import { OrderTrackingComponent } from './components/order-tracking/order-tracking';
+import { AnalyticsDashboardComponent } from './components/analytics-dashboard/analytics-dashboard';
 import { authGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
@@ -34,6 +37,23 @@ export const routes: Routes = [
     component: CheckoutComponent,
     canActivate: [authGuard],
     data: { role: 'customer' }
+  },
+  { 
+    path: 'profile', 
+    component: ProfileComponent,
+    canActivate: [authGuard]
+  },
+  { 
+    path: 'order-tracking', 
+    component: OrderTrackingComponent,
+    canActivate: [authGuard],
+    data: { role: 'customer' }
+  },
+  { 
+    path: 'analytics', 
+    component: AnalyticsDashboardComponent,
+    canActivate: [authGuard],
+    data: { role: 'owner' }
   },
   { path: '**', redirectTo: '/login' }
 ];

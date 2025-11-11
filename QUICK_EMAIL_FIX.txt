@@ -1,0 +1,142 @@
+═══════════════════════════════════════════════════════════════════
+  📧 EMAIL NOTIFICATION FIX - FOLLOW THESE 5 STEPS EXACTLY
+═══════════════════════════════════════════════════════════════════
+
+STEP 1: GET GMAIL APP PASSWORD (3 minutes)
+───────────────────────────────────────────────────────────────────
+1. Open: https://myaccount.google.com/security
+2. Enable "2-Step Verification" (if not already on)
+3. Click "App passwords" (in 2-Step Verification section)
+4. Select: App = Mail, Device = Other (type "SipStop")
+5. Click "Generate"
+6. COPY the 16-character password (example: abcd efgh ijkl mnop)
+   ⚠️  IMPORTANT: You can't see it again!
+
+═══════════════════════════════════════════════════════════════════
+
+STEP 2: EDIT .ENV FILE (1 minute)
+───────────────────────────────────────────────────────────────────
+Run this command:
+
+    cd /Users/vinvivek/Angular-Task/sipstop
+    nano .env
+
+Replace EVERYTHING in the file with (use YOUR values):
+
+    EMAIL_USER=your.email@gmail.com
+    EMAIL_PASSWORD=abcdefghijklmnop
+    APP_URL=http://localhost:4200
+
+⚠️  REMOVE SPACES from password: "abcd efgh" becomes "abcdefgh"
+⚠️  NO quotes around values
+⚠️  Use YOUR actual Gmail email
+⚠️  Use the App Password you just copied
+
+Save: Press Ctrl+O, Enter, Ctrl+X
+
+═══════════════════════════════════════════════════════════════════
+
+STEP 3: TEST YOUR CONFIGURATION (30 seconds)
+───────────────────────────────────────────────────────────────────
+Run this command (use YOUR email):
+
+    cd /Users/vinvivek/Angular-Task/sipstop
+    node test-email.js your.email@gmail.com
+
+✅ If successful, you'll see:
+    ✅ Connection successful! Gmail is ready to send emails
+    ✅ Test email sent successfully!
+    🎉 SUCCESS! Check your inbox
+
+❌ If failed, you'll see the exact error and what to fix
+
+═══════════════════════════════════════════════════════════════════
+
+STEP 4: RESTART SERVER (30 seconds)
+───────────────────────────────────────────────────────────────────
+In your server terminal:
+
+1. Press Ctrl+C (stop server)
+2. Run: node server.js
+
+You MUST see:
+    ✅ Email service is ready to send messages
+
+If you see:
+    ❌ Email service error
+Then your .env is wrong - go back to Step 2
+
+═══════════════════════════════════════════════════════════════════
+
+STEP 5: TEST IN YOUR APP (1 minute)
+───────────────────────────────────────────────────────────────────
+1. Open: http://localhost:4200
+2. Click "Sign Up"
+3. Create account with YOUR email
+4. Submit
+5. CHECK YOUR EMAIL! (including spam folder)
+
+═══════════════════════════════════════════════════════════════════
+
+TROUBLESHOOTING
+───────────────────────────────────────────────────────────────────
+❌ "Authentication failed"
+   → You're using regular password, not App Password
+   → Go back to Step 1
+
+❌ "Email service error"  
+   → .env not configured correctly
+   → Check for typos, extra spaces, or quotes
+   → Go back to Step 2
+
+❌ Test email not received
+   → Check Spam/Junk folder
+   → Wait 1-2 minutes
+   → Verify email address is correct
+
+❌ "Cannot find module 'nodemailer'"
+   → Run: npm install
+   → Then start from Step 3
+
+═══════════════════════════════════════════════════════════════════
+
+QUICK COMMANDS
+───────────────────────────────────────────────────────────────────
+# Test email
+node test-email.js your@email.com
+
+# View .env
+cat .env
+
+# Edit .env
+nano .env
+
+# Restart server
+node server.js
+
+═══════════════════════════════════════════════════════════════════
+
+⚠️  CRITICAL POINTS:
+───────────────────────────────────────────────────────────────────
+✓ Use Gmail App Password (16 chars), NOT regular password
+✓ Enable 2-Step Verification first (required for App Passwords)
+✓ Remove spaces from App Password when copying to .env
+✓ Restart server after changing .env
+✓ Test script will tell you EXACTLY what's wrong
+
+═══════════════════════════════════════════════════════════════════
+
+EXAMPLE .ENV FILE (with fake values)
+───────────────────────────────────────────────────────────────────
+EMAIL_USER=john.doe@gmail.com
+EMAIL_PASSWORD=xptwyrmcqjfhpqzx
+APP_URL=http://localhost:4200
+
+(Use YOUR real Gmail and App Password!)
+
+═══════════════════════════════════════════════════════════════════
+
+READY TO START? Follow steps 1-5 above! 🚀
+
+Need help? Run the test script first - it will show you the problem!
+

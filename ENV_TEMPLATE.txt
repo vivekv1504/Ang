@@ -1,0 +1,25 @@
+# Email Configuration Template
+# Copy this content to a new file named ".env" in the sipstop directory
+
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+APP_URL=http://localhost:4200
+
+# INSTRUCTIONS:
+# 1. Create a new file named ".env" (without quotes) in the sipstop directory
+# 2. Copy the above content into that file
+# 3. Replace 'your-email@gmail.com' with your Gmail address
+# 4. Replace 'your-app-password' with a Gmail App Password (NOT your regular password)
+# 
+# To get a Gmail App Password:
+# - Go to your Google Account settings: https://myaccount.google.com/
+# - Navigate to Security > 2-Step Verification (enable if not already enabled)
+# - Go to Security > App passwords
+# - Generate a new app password for 'Mail'
+# - Copy the 16-character password and paste it in your .env file
+#
+# Alternative Email Services:
+# - SendGrid: https://sendgrid.com/
+# - Mailgun: https://www.mailgun.com/
+# - AWS SES: https://aws.amazon.com/ses/
+

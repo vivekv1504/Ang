@@ -32,7 +32,15 @@
     "email": "vamsi@gmail.com",
     "password": "vamsi123",
     "role": "customer",
-    "id": 5
+    "id": 5,
+    "phone": "07569957407",
+    "address": {
+      "street": "Narasareddy palem village, kaligiri mandal, China annaluru",
+      "city": "Nellore",
+      "state": "Andhra Pradesh",
+      "zipCode": "524224",
+      "country": "India"
+    }
   },
   {
     "name": "Jahnavi",
@@ -61,5 +69,33 @@
     "password": "shreyas123",
     "role": "owner",
     "id": 9
+  },
+  {
+    "name": "Jhonsena",
+    "email": "john@gmail.com",
+    "password": "john123",
+    "role": "owner",
+    "id": 10
+  },
+  {
+    "name": "vishnuvardhan",
+    "email": "vishnu.avvari9.30@gmail.com",
+    "password": "vishnu123",
+    "role": "customer",
+    "id": 11
+  },
+  {
+    "name": "vivekananda",
+    "email": "vinthavivekreddy@gmail.com",
+    "password": "vivek123",
+    "role": "customer",
+    "id": 12
+  },
+  {
+    "name": "vivekananda",
+    "email": "vinvivek@cisco.com",
+    "password": "vivek123",
+    "role": "customer",
+    "id": 13
   }
 ]

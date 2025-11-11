@@ -3,9 +3,11 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const bodyParser = require('body-parser');
+const { sendWelcomeEmail, sendOrderConfirmationEmail } = require('./email-service');
 
 const app = express();
 const PORT = 3000;
+const HOST = '0.0.0.0'; // Listen on all network interfaces
 
 // Middleware
 app.use(cors());
@@ -71,7 +73,7 @@ app.get('/api/users', (req, res) => {
 });
 
 // Add new user (Signup)
-app.post('/api/users', (req, res) => {
+app.post('/api/users', async (req, res) => {
   const users = readJsonFile(USERS_FILE);
   const newUser = req.body;
   
@@ -87,9 +89,40 @@ app.post('/api/users', (req, res) => {
   users.push(newUser);
   
   if (writeJsonFile(USERS_FILE, users)) {
+    // Send welcome email (don't wait for it to complete)
+    sendWelcomeEmail(newUser.email, newUser.name || newUser.email.split('@')[0])
+      .then(() => console.log(`📧 Welcome email sent to ${newUser.email}`))
+      .catch(err => console.error(`❌ Failed to send welcome email to ${newUser.email}:`, err));
+    
     res.status(201).json({ success: true, user: newUser });
   } else {
     res.status(500).json({ error: 'Failed to save user' });
+  }
+});
+
+// Update user profile
+app.put('/api/users/:id', (req, res) => {
+  const users = readJsonFile(USERS_FILE);
+  const userId = parseInt(req.params.id);
+  const updatedData = req.body;
+  
+  const index = users.findIndex(u => u.id === userId);
+  
+  if (index !== -1) {
+    // Don't allow changing the role or id
+    delete updatedData.role;
+    delete updatedData.id;
+    
+    users[index] = { ...users[index], ...updatedData };
+    
+    if (writeJsonFile(USERS_FILE, users)) {
+      console.log('✅ User profile updated:', users[index]);
+      res.json({ success: true, user: users[index] });
+    } else {
+      res.status(500).json({ error: 'Failed to update user profile' });
+    }
+  } else {
+    res.status(404).json({ error: 'User not found' });
   }
 });
 
@@ -170,7 +203,7 @@ app.get('/api/orders', (req, res) => {
 });
 
 // Add new order
-app.post('/api/orders', (req, res) => {
+app.post('/api/orders', async (req, res) => {
   console.log('📦 Received order request:', req.body);
   
   const orders = readJsonFile(ORDERS_FILE);
@@ -206,6 +239,34 @@ app.post('/api/orders', (req, res) => {
     
     if (savedOrder) {
       console.log('✅ Order verified in JSON file');
+      
+      // Send order confirmation email
+      const users = readJsonFile(USERS_FILE);
+      const user = users.find(u => u.id === newOrder.userId);
+      
+      if (user && user.email) {
+        // Map shippingInfo to shippingAddress for email template
+        const shippingAddress = newOrder.shippingInfo ? {
+          street: newOrder.shippingInfo.address || 'N/A',
+          city: newOrder.shippingInfo.city || 'N/A',
+          state: newOrder.shippingInfo.state || '',
+          zipCode: newOrder.shippingInfo.zipCode || '',
+          country: newOrder.shippingInfo.country || 'N/A'
+        } : null;
+
+        const orderDetails = {
+          orderNumber: newOrder.orderNumber,
+          items: newOrder.items,
+          total: newOrder.total,
+          shippingAddress: shippingAddress,
+          paymentMethod: newOrder.paymentInfo?.cardName ? `Card ending in ${newOrder.paymentInfo.cardNumber}` : 'N/A'
+        };
+        
+        sendOrderConfirmationEmail(user.email, user.name || user.email.split('@')[0], orderDetails)
+          .then(() => console.log(`📧 Order confirmation email sent to ${user.email}`))
+          .catch(err => console.error(`❌ Failed to send order confirmation email:`, err));
+      }
+      
       res.status(201).json({ success: true, order: newOrder });
     } else {
       console.error('❌ Order not found in file after write');
@@ -232,18 +293,37 @@ app.get('/api/health', (req, res) => {
 
 // ============ SERVER START ============
 
-app.listen(PORT, () => {
+app.listen(PORT, HOST, () => {
+  const os = require('os');
+  const networkInterfaces = os.networkInterfaces();
+  let localIP = 'localhost';
+  
+  // Find local IP address
+  for (const interfaceName in networkInterfaces) {
+    const interfaces = networkInterfaces[interfaceName];
+    for (const iface of interfaces) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        localIP = iface.address;
+        break;
+      }
+    }
+  }
+  
   console.log('🚀 ========================================');
   console.log('🚀 SipStop Backend Server is running!');
   console.log('🚀 ========================================');
-  console.log(`🌐 Server URL: http://localhost:${PORT}`);
-  console.log(`📝 Users API: http://localhost:${PORT}/api/users`);
-  console.log(`🍷 Products API: http://localhost:${PORT}/api/products`);
-  console.log(`📦 Orders API: http://localhost:${PORT}/api/orders`);
-  console.log(`🏥 Health Check: http://localhost:${PORT}/api/health`);
+  console.log(`🌐 Local: http://localhost:${PORT}`);
+  console.log(`🌍 Network: http://${localIP}:${PORT}`);
+  console.log('🚀 ========================================');
+  console.log('📡 API Endpoints:');
+  console.log(`   📝 Users: http://${localIP}:${PORT}/api/users`);
+  console.log(`   🍷 Products: http://${localIP}:${PORT}/api/products`);
+  console.log(`   📦 Orders: http://${localIP}:${PORT}/api/orders`);
+  console.log(`   🏥 Health: http://${localIP}:${PORT}/api/health`);
   console.log('🚀 ========================================');
   console.log('✅ Server is ready to accept requests!');
   console.log('💾 All changes will be saved to JSON files');
+  console.log(`📱 Access from other devices: http://${localIP}:${PORT}`);
   console.log('🚀 ========================================');
   
   // Log current data counts

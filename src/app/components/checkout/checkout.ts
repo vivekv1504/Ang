@@ -77,6 +77,34 @@ export class CheckoutComponent implements OnInit {
     this.finalTotal = this.cartTotal + this.tax;
   }
 
+  validateForms(): boolean {
+    // Basic validation
+    const shippingValid = 
+      this.shippingInfo.fullName &&
+      this.shippingInfo.email &&
+      this.shippingInfo.phone &&
+      this.shippingInfo.address &&
+      this.shippingInfo.city &&
+      this.shippingInfo.state &&
+      this.shippingInfo.zipCode;
+
+    const paymentValid = 
+      this.paymentInfo.cardNumber &&
+      this.paymentInfo.cardName &&
+      this.paymentInfo.expiryDate &&
+      this.paymentInfo.cvv;
+
+    return !!(shippingValid && paymentValid);
+  }
+
+  onImageError(event: any): void {
+    event.target.src = 'https://via.placeholder.com/80x80?text=No+Image';
+  }
+
+  continueShop(): void {
+    this.router.navigate(['/customer-products']);
+  }
+
   placeOrder(): void {
     if (!this.validateForms()) {
       alert('Please fill in all required fields');
@@ -127,14 +155,14 @@ export class CheckoutComponent implements OnInit {
             this.orderService.addOrder(order).subscribe({
               next: (orderSuccess) => {
                 if (orderSuccess) {
-                  console.log('✅ Order saved successfully:', order);
+          console.log('✅ Order saved successfully:', order);
                   console.log('✅ Order Number:', this.orderNumber);
-                  
-                  this.orderComplete = true;
-                  this.isProcessing = false;
-                  
-                  // Clear cart after successful order
-                  this.cartService.clearCart();
+          
+          this.orderComplete = true;
+          this.isProcessing = false;
+          
+          // Clear cart after successful order
+          this.cartService.clearCart();
                 } else {
                   console.error('❌ Failed to save order');
                   this.isProcessing = false;
@@ -160,34 +188,5 @@ export class CheckoutComponent implements OnInit {
         }
       });
     }, 2000);
-  }
-
-  validateForms(): boolean {
-    // Basic validation
-    const shippingValid = 
-      this.shippingInfo.fullName &&
-      this.shippingInfo.email &&
-      this.shippingInfo.phone &&
-      this.shippingInfo.address &&
-      this.shippingInfo.city &&
-      this.shippingInfo.state &&
-      this.shippingInfo.zipCode;
-
-    const paymentValid =
-      this.paymentInfo.cardNumber &&
-      this.paymentInfo.cardName &&
-      this.paymentInfo.expiryDate &&
-      this.paymentInfo.cvv;
-
-    return !!(shippingValid && paymentValid);
-  }
-
-  continueShopping(): void {
-    this.router.navigate(['/customer-products']);
-  }
-
-  onImageError(event: any): void {
-    // Fallback image if the original fails to load
-    event.target.src = 'https://via.placeholder.com/60x60/667eea/ffffff?text=Product';
   }
 }
