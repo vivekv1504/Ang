@@ -1,0 +1,375 @@
+================================================================================
+                    SIPSTOP E-COMMERCE - ER DIAGRAM
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           ENTITY RELATIONSHIP DIAGRAM                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+                    ┌────────────────────────┐
+                    │         USER           │
+                    ├────────────────────────┤
+                    │ PK  id                 │
+                    │     name               │
+                    │ UK  email              │
+                    │     password           │
+                    │     role               │
+                    │     phone              │
+                    │     address {          │
+                    │       street           │
+                    │       city             │
+                    │       state            │
+                    │       zipCode          │
+                    │       country          │
+                    │     }                  │
+                    └────────────┬───────────┘
+                                 │
+                                 │ 1
+                                 │
+                                 │ places
+                                 │
+                                 │ N
+                                 ▼
+                    ┌────────────────────────┐
+                    │        ORDER           │
+                    ├────────────────────────┤
+                    │ PK  id                 │
+                    │ FK  userId             │
+                    │     total              │
+                    │     date               │
+                    │     status             │
+                    │ UK  orderNumber        │
+                    │     shippingInfo {     │
+                    │       fullName         │
+                    │       email            │
+                    │       phone            │
+                    │       address          │
+                    │       city             │
+                    │       state            │
+                    │       zipCode          │
+                    │     }                  │
+                    │     paymentInfo {      │
+                    │       cardNumber       │
+                    │       cardName         │
+                    │       method           │
+                    │     }                  │
+                    └────────────┬───────────┘
+                                 │
+                                 │ 1
+                                 │
+                                 │ contains
+                                 │
+                                 │ N
+                                 ▼
+                    ┌────────────────────────┐
+                    │     ORDER_ITEM         │
+                    ├────────────────────────┤
+                    │ PK,FK orderId          │
+                    │ PK,FK productId        │
+                    │       quantity         │
+                    │       price            │
+                    │       productName      │
+                    └────────────┬───────────┘
+                                 │
+                                 │ N
+                                 │
+                                 │ references
+                                 │
+                                 │ 1
+                                 ▼
+                    ┌────────────────────────┐
+                    │       PRODUCT          │
+                    ├────────────────────────┤
+                    │ PK  id                 │
+                    │     name               │
+                    │     category           │
+                    │     price              │
+                    │     description        │
+                    │     stock              │
+                    │     image              │
+                    └────────────────────────┘
+
+
+================================================================================
+                            RELATIONSHIPS SUMMARY
+================================================================================
+
+1. USER → ORDER (One-to-Many)
+   ─────────────────────────────────────────────────────────────────────────
+   Relationship: One user can place multiple orders
+   Cardinality:  1 : N
+   Foreign Key:  ORDER.userId → USER.id
+   Description:  Each order is placed by exactly one user.
+                 A user can have zero or many orders.
+
+
+2. ORDER → ORDER_ITEM (One-to-Many)
+   ─────────────────────────────────────────────────────────────────────────
+   Relationship: One order contains multiple items
+   Cardinality:  1 : N
+   Foreign Key:  ORDER_ITEM.orderId → ORDER.id
+   Description:  Each order can have multiple products (line items).
+                 Each order item belongs to exactly one order.
+
+
+3. PRODUCT → ORDER_ITEM (One-to-Many)
+   ─────────────────────────────────────────────────────────────────────────
+   Relationship: One product can be in multiple orders
+   Cardinality:  1 : N
+   Foreign Key:  ORDER_ITEM.productId → PRODUCT.id
+   Description:  A product can appear in many different orders.
+                 Each order item references exactly one product.
+
+
+================================================================================
+                            CARDINALITY DIAGRAM
+================================================================================
+
+    USER          ORDER         ORDER_ITEM      PRODUCT
+     │              │                │             │
+     │ 1            │ 1              │ N           │ 1
+     ├──────────────┤                │             │
+     │   places     │                │             │
+     │              │                │             │
+     │              ├────────────────┤             │
+     │              │   contains     │             │
+     │              │                │             │
+     │              │                ├─────────────┤
+     │              │                │  references │
+     └──────────────┴────────────────┴─────────────┘
+
+
+================================================================================
+                            KEY ATTRIBUTES
+================================================================================
+
+PRIMARY KEYS (PK):
+   USER.id
+   PRODUCT.id
+   ORDER.id
+   ORDER_ITEM.(orderId, productId) ← Composite Key
+
+FOREIGN KEYS (FK):
+   ORDER.userId         → USER.id
+   ORDER_ITEM.orderId   → ORDER.id
+   ORDER_ITEM.productId → PRODUCT.id
+
+UNIQUE KEYS (UK):
+   USER.email
+   ORDER.orderNumber
+
+
+================================================================================
+                            DATA TYPES
+================================================================================
+
+USER Entity:
+   id           : Integer (Auto-increment)
+   name         : String
+   email        : String (Unique)
+   password     : String (Encrypted)
+   role         : Enum ('customer', 'owner')
+   phone        : String (Optional)
+   address      : JSON Object (Optional)
+
+PRODUCT Entity:
+   id           : Integer (Auto-increment)
+   name         : String
+   category     : String
+   price        : Decimal(10,2)
+   description  : String
+   stock        : Integer (>= 0)
+   image        : String (URL)
+
+ORDER Entity:
+   id           : Integer (Auto-increment)
+   userId       : Integer (Foreign Key)
+   total        : Decimal(10,2)
+   date         : DateTime (ISO 8601)
+   status       : String
+   orderNumber  : String (Unique)
+   shippingInfo : JSON Object
+   paymentInfo  : JSON Object
+
+ORDER_ITEM Entity:
+   orderId      : Integer (Foreign Key, Composite PK)
+   productId    : Integer (Foreign Key, Composite PK)
+   quantity     : Integer (> 0)
+   price        : Decimal(10,2)
+   productName  : String
+
+
+================================================================================
+                            CONSTRAINTS
+================================================================================
+
+CHECK Constraints:
+   ✓ PRODUCT.price > 0
+   ✓ PRODUCT.stock >= 0
+   ✓ ORDER_ITEM.quantity > 0
+   ✓ ORDER.total > 0
+   ✓ USER.role IN ('customer', 'owner')
+
+NOT NULL Constraints:
+   ✓ USER: name, email, password, role
+   ✓ PRODUCT: id, name, category, price, description, stock, image
+   ✓ ORDER: id, userId, total, date, status
+   ✓ ORDER_ITEM: orderId, productId, quantity, price
+
+UNIQUE Constraints:
+   ✓ USER.email
+   ✓ ORDER.orderNumber
+
+
+================================================================================
+                            BUSINESS RULES
+================================================================================
+
+1. User Management:
+   ─────────────────
+   • Email must be unique across the system
+   • Two user roles: 'customer' (shopper) and 'owner' (admin)
+   • Customers can browse, shop, and place orders
+   • Owners can manage products, view analytics
+
+2. Product Management:
+   ────────────────────
+   • Stock must be non-negative
+   • Stock automatically reduces when order is placed
+   • Out-of-stock products (stock = 0) cannot be added to cart
+   • Price must be greater than 0
+
+3. Order Processing:
+   ──────────────────
+   • Each order must belong to a user
+   • Order total includes products + 10% tax
+   • Order status: 'Completed', 'Pending', 'Cancelled'
+   • OrderNumber auto-generated (format: SS + 6 digits)
+   • Historical pricing: prices captured at order time
+
+4. Stock Management:
+   ──────────────────
+   • Stock validation before adding to cart
+   • Automatic stock reduction on order placement
+   • Stock check prevents overselling
+   • Stock levels displayed to customers
+
+
+================================================================================
+                            SAMPLE DATA FLOW
+================================================================================
+
+EXAMPLE: Customer Places Order
+─────────────────────────────────────────────────────────────────────────────
+
+Step 1: User Authentication
+   USER (id: 3, email: "john@example.com", role: "customer")
+
+Step 2: Browse Products
+   PRODUCT (id: 1, name: "Whisky A", price: 50, stock: 100)
+   PRODUCT (id: 2, name: "Beer B", price: 10, stock: 200)
+
+Step 3: Add to Cart
+   CART_ITEM (productId: 1, quantity: 2)
+   CART_ITEM (productId: 2, quantity: 5)
+
+Step 4: Checkout - Create Order
+   ORDER (
+      id: 15,
+      userId: 3,
+      total: 165.00,  // (50*2 + 10*5) * 1.1 (with tax)
+      date: "2025-11-11T10:30:00Z",
+      status: "Completed",
+      orderNumber: "SS456789"
+   )
+
+Step 5: Create Order Items
+   ORDER_ITEM (orderId: 15, productId: 1, quantity: 2, price: 50)
+   ORDER_ITEM (orderId: 15, productId: 2, quantity: 5, price: 10)
+
+Step 6: Update Product Stock
+   PRODUCT (id: 1, stock: 98)  // 100 - 2
+   PRODUCT (id: 2, stock: 195) // 200 - 5
+
+Step 7: Send Confirmation
+   Email sent to: john@example.com
+   Order Number: SS456789
+
+
+================================================================================
+                            QUERIES & ANALYTICS
+================================================================================
+
+Common Queries:
+───────────────
+
+1. Get User's Orders:
+   SELECT * FROM orders WHERE userId = ?
+
+2. Get Order Details with Items:
+   SELECT o.*, oi.* 
+   FROM orders o 
+   JOIN order_items oi ON o.id = oi.orderId 
+   WHERE o.id = ?
+
+3. Calculate Total Revenue:
+   SELECT SUM(total) FROM orders WHERE status = 'Completed'
+
+4. Top Selling Products:
+   SELECT productId, SUM(quantity) as total_sold
+   FROM order_items
+   GROUP BY productId
+   ORDER BY total_sold DESC
+
+5. Customer Order Count:
+   SELECT userId, COUNT(*) as order_count
+   FROM orders
+   GROUP BY userId
+
+
+================================================================================
+                            STORAGE IMPLEMENTATION
+================================================================================
+
+Current: JSON File-Based Storage
+─────────────────────────────────
+   users.json     → USER entities
+   products.json  → PRODUCT entities
+   orders.json    → ORDER entities (with embedded ORDER_ITEMs)
+
+Structure:
+   orders.json = [
+     {
+       "id": 1,
+       "userId": 3,
+       "items": [
+         {"product": {...}, "quantity": 2}
+       ],
+       "total": 165.00
+     }
+   ]
+
+Future: Relational Database (PostgreSQL, MySQL)
+───────────────────────────────────────────────
+   Normalize data into separate tables
+   Add foreign key constraints
+   Implement triggers for stock management
+   Add indexes for performance
+
+
+================================================================================
+                            VERSION INFORMATION
+================================================================================
+
+Application:  SipStop E-Commerce
+Version:      1.0
+Created:      November 2025
+Author:       Development Team
+Entities:     4 (USER, PRODUCT, ORDER, ORDER_ITEM)
+Relationships: 3 (One-to-Many)
+
+================================================================================
+
+
+

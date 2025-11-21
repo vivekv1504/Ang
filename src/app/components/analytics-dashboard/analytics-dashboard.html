@@ -97,6 +97,168 @@
       </div>
     </div>
 
+    <!-- Time-Based Sales Analysis -->
+    <div class="time-analysis-section">
+      <div class="section-header">
+        <h2 class="section-title">⏰ Top Selling Products by Time Period</h2>
+        <div class="time-period-selector">
+          <button 
+            class="period-btn"
+            [class.active]="selectedTimePeriod === 'week'"
+            (click)="selectTimePeriod('week')">
+            📅 This Week
+          </button>
+          <button 
+            class="period-btn"
+            [class.active]="selectedTimePeriod === 'month'"
+            (click)="selectTimePeriod('month')">
+            📆 This Month
+          </button>
+          <button 
+            class="period-btn"
+            [class.active]="selectedTimePeriod === 'year'"
+            (click)="selectTimePeriod('year')">
+            📊 This Year
+          </button>
+        </div>
+      </div>
+
+      <div class="time-analysis-content">
+        <!-- Period Summary Card -->
+        <div class="period-summary-card">
+          <div class="summary-header">
+            <h3>{{ getPeriodLabel() }} Performance</h3>
+            <div class="summary-badge">
+              {{ getCurrentTopProducts().length }} Products Sold
+            </div>
+          </div>
+          <div class="summary-stats">
+            <div class="summary-stat">
+              <span class="stat-icon">💰</span>
+              <div class="stat-info">
+                <p class="stat-label">Total Revenue</p>
+                <h3 class="stat-value">${{ getCurrentRevenue().toFixed(2) }}</h3>
+              </div>
+            </div>
+            <div class="summary-stat">
+              <span class="stat-icon">📦</span>
+              <div class="stat-info">
+                <p class="stat-label">Total Orders</p>
+                <h3 class="stat-value">
+                  {{ getCurrentPeriodStats()[getCurrentPeriodStats().length - 1]?.orders || 0 }}
+                </h3>
+              </div>
+            </div>
+            <div class="summary-stat">
+              <span class="stat-icon">🏆</span>
+              <div class="stat-info">
+                <p class="stat-label">Top Product</p>
+                <h3 class="stat-value top-product-name">
+                  {{ getCurrentTopProducts()[0]?.product.name || 'N/A' }}
+                </h3>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Products List with Visual Bars -->
+        <div class="top-products-visual-card">
+          <h3 class="card-title">🏆 Top 10 Products - {{ getPeriodLabel() }}</h3>
+          <div class="visual-products-list">
+            <div *ngFor="let item of getCurrentTopProducts(); let i = index" class="visual-product-item">
+              <div class="product-rank">
+                <span class="rank-number" [class.top-three]="i < 3">{{ i + 1 }}</span>
+              </div>
+              <div class="product-info">
+                <img [src]="item.product.image" [alt]="item.product.name" class="product-image">
+                <div class="product-details">
+                  <h4 class="product-title">{{ item.product.name }}</h4>
+                  <p class="product-category">{{ item.product.category }}</p>
+                </div>
+              </div>
+              <div class="product-metrics">
+                <div class="metric">
+                  <span class="metric-label">Sold</span>
+                  <span class="metric-value">{{ item.sold }} units</span>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Orders</span>
+                  <span class="metric-value">{{ item.orders }}</span>
+                </div>
+                <div class="metric">
+                  <span class="metric-label">Revenue</span>
+                  <span class="metric-value revenue">${{ item.revenue.toFixed(2) }}</span>
+                </div>
+              </div>
+              <div class="product-bar-container">
+                <div 
+                  class="product-bar" 
+                  [style.width.%]="getRevenueBarWidthForProduct(item.revenue)"
+                  [class.top-one]="i === 0"
+                  [class.top-three]="i < 3">
+                </div>
+              </div>
+            </div>
+            <div *ngIf="getCurrentTopProducts().length === 0" class="empty-state">
+              <div class="empty-icon">📊</div>
+              <p>No sales data for {{ getPeriodLabel().toLowerCase() }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Comparison Chart -->
+        <div class="comparison-chart-card">
+          <h3 class="card-title">📈 {{ selectedTimePeriod === 'week' ? 'Weekly' : selectedTimePeriod === 'month' ? 'Monthly' : 'Yearly' }} Comparison</h3>
+          <div class="comparison-chart">
+            <div *ngFor="let stat of getCurrentPeriodStats()" class="comparison-bar-item">
+              <div class="comparison-bar-wrapper">
+                <div 
+                  class="comparison-bar" 
+                  [style.height.%]="getComparisonBarHeight(stat.revenue)"
+                  [title]="'Revenue: $' + stat.revenue.toFixed(2)">
+                  <span class="bar-value">${{ stat.revenue > 1000 ? (stat.revenue / 1000).toFixed(1) + 'K' : stat.revenue.toFixed(0) }}</span>
+                </div>
+              </div>
+              <div class="comparison-label">{{ stat.period }}</div>
+              <div class="comparison-details">
+                <span class="detail-item">{{ stat.orders }} orders</span>
+                <span class="detail-item top-product-label">Top: {{ stat.topProduct }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Insights Cards -->
+        <div class="insights-grid">
+          <div class="insight-card" *ngIf="selectedTimePeriod === 'week'">
+            <div class="insight-icon">📅</div>
+            <h4>Weekly Insight</h4>
+            <p>Analyzing last 8 weeks of sales data to identify trends and patterns.</p>
+          </div>
+          <div class="insight-card" *ngIf="selectedTimePeriod === 'month'">
+            <div class="insight-icon">📆</div>
+            <h4>Monthly Insight</h4>
+            <p>Tracking monthly performance over the last 12 months for better forecasting.</p>
+          </div>
+          <div class="insight-card" *ngIf="selectedTimePeriod === 'year'">
+            <div class="insight-icon">📊</div>
+            <h4>Yearly Insight</h4>
+            <p>Year-over-year comparison showing growth trajectory and seasonal patterns.</p>
+          </div>
+          
+          <div class="insight-card highlight">
+            <div class="insight-icon">🎯</div>
+            <h4>Best Performer</h4>
+            <p *ngIf="getCurrentTopProducts().length > 0">
+              <strong>{{ getCurrentTopProducts()[0].product.name }}</strong> leads with 
+              <strong>${{ getCurrentTopProducts()[0].revenue.toFixed(2) }}</strong> in revenue!
+            </p>
+            <p *ngIf="getCurrentTopProducts().length === 0">No data available yet.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Tables Row -->
     <div class="tables-row">
       <!-- Top Products -->

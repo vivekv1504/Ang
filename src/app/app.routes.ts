@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './components/login/login';
 import { SignupComponent } from './components/signup/signup';
+import { ForgotPasswordComponent } from './components/forgot-password/forgot-password';
 import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard';
 import { CustomerProductsComponent } from './components/customer-products/customer-products';
 import { CartComponent } from './components/cart/cart';
@@ -14,6 +15,7 @@ export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'signup', component: SignupComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
   { 
     path: 'admin-dashboard', 
     component: AdminDashboardComponent,

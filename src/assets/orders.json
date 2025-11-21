@@ -479,5 +479,52 @@
       "cardNumber": "****4697",
       "cardName": "vishnu"
     }
+  },
+  {
+    "id": 12,
+    "userId": 14,
+    "items": [
+      {
+        "product": {
+          "id": 1,
+          "name": "Johnnie Walker Black Label",
+          "category": "Whisky",
+          "price": 45.99,
+          "description": "Rich, smooth blended Scotch whisky aged 12 years",
+          "stock": 49,
+          "image": "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=400"
+        },
+        "quantity": 1
+      },
+      {
+        "product": {
+          "id": 2,
+          "name": "Grey Goose Vodka",
+          "category": "Vodka",
+          "price": 39.99,
+          "description": "Premium French vodka distilled from wheat",
+          "stock": 29,
+          "image": "https://images.unsplash.com/photo-1650477021184-6fe8ef5b846e?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1299"
+        },
+        "quantity": 1
+      }
+    ],
+    "total": 94.578,
+    "date": "2025-11-19T09:48:08.164Z",
+    "status": "Completed",
+    "orderNumber": "SS645855",
+    "shippingInfo": {
+      "fullName": "sujith",
+      "email": "sujith@gmail.com",
+      "phone": "07569957407",
+      "address": "Narasareddy palem village, kaligiri mandal, China annaluru",
+      "city": "Nellore",
+      "state": "Andhra Pradesh",
+      "zipCode": "524224"
+    },
+    "paymentInfo": {
+      "cardNumber": "****8580",
+      "cardName": "sujisth"
+    }
   }
 ]

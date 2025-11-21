@@ -1,60 +1,174 @@
 <div class="login-container">
+  <!-- Animated Background Elements -->
+  <div class="background-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+  </div>
+
   <div class="login-card">
+    <!-- Logo Section with Animation -->
     <div class="logo-section">
-      <h1 class="logo">🍷 SipStop</h1>
-      <p class="tagline">Your Premium Alcohol Store</p>
+      <div class="logo-wrapper">
+        <h1 class="logo">🍷 SipStop</h1>
+        <div class="logo-underline"></div>
+      </div>
+      <p class="tagline">Your Premium Alcohol Destination</p>
     </div>
 
-    <h2>Login</h2>
+    <h2 class="form-title">Welcome Back</h2>
+
+    <!-- Success Message -->
+    <div *ngIf="successMessage" class="success-message">
+      <span class="success-icon">✓</span>
+      {{ successMessage }}
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="errorMessage" class="error-message">
+      <span class="error-icon">✕</span>
+      {{ errorMessage }}
+    </div>
 
     <form (ngSubmit)="onLogin()" #loginForm="ngForm">
+      <!-- Email Field -->
       <div class="form-group">
-        <label for="email">Email</label>
-        <input
-          type="email"
-          id="email"
-          name="email"
-          [(ngModel)]="email"
-          required
-          placeholder="Enter your email"
-          class="form-control"
-        />
+        <label for="email">
+          <span class="label-icon">📧</span>
+          Email Address
+        </label>
+        <div class="input-wrapper">
+          <input
+            type="email"
+            id="email"
+            name="email"
+            [(ngModel)]="email"
+            (blur)="emailTouched = true"
+            (input)="emailTouched = true"
+            required
+            placeholder="Enter your email"
+            class="form-control"
+            [class.error]="getEmailError()"
+            [class.success]="emailTouched && isEmailValid() && email"
+          />
+          <span class="input-icon email-icon">@</span>
+        </div>
+        <div *ngIf="getEmailError()" class="field-error">
+          {{ getEmailError() }}
+        </div>
       </div>
 
+      <!-- Password Field -->
       <div class="form-group">
-        <label for="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          [(ngModel)]="password"
-          required
-          placeholder="Enter your password"
-          class="form-control"
-        />
+        <label for="password">
+          <span class="label-icon">🔒</span>
+          Password
+        </label>
+        <div class="input-wrapper">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            name="password"
+            [(ngModel)]="password"
+            (blur)="passwordTouched = true"
+            (input)="passwordTouched = true"
+            required
+            placeholder="Enter your password"
+            class="form-control password-input"
+            [class.error]="getPasswordError()"
+            [class.success]="passwordTouched && password.length >= 6"
+          />
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            tabindex="-1"
+          >
+            <span *ngIf="!showPassword">👁️</span>
+            <span *ngIf="showPassword">👁️‍🗨️</span>
+          </button>
+        </div>
+        <div *ngIf="getPasswordError()" class="field-error">
+          {{ getPasswordError() }}
+        </div>
       </div>
 
-      <div *ngIf="errorMessage" class="error-message">
-        {{ errorMessage }}
+      <!-- Remember Me & Forgot Password -->
+      <div class="form-options">
+        <label class="remember-me">
+          <input
+            type="checkbox"
+            [(ngModel)]="rememberMe"
+            name="rememberMe"
+          />
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-label">Remember me</span>
+        </label>
+        <a class="forgot-password" (click)="onForgotPassword()">
+          Forgot Password?
+        </a>
       </div>
 
+      <!-- Login Button -->
       <button
         type="submit"
         class="btn-primary"
         [disabled]="isLoading || !loginForm.valid"
       >
-        {{ isLoading ? 'Logging in...' : 'Login' }}
+        <span *ngIf="!isLoading" class="btn-content">
+          <span class="btn-icon">🚀</span>
+          Login
+        </span>
+        <span *ngIf="isLoading" class="btn-loading">
+          <span class="spinner"></span>
+          Logging in...
+        </span>
       </button>
     </form>
 
-    <div class="signup-link">
-      <p>Don't have an account? <a routerLink="/signup">Sign up here</a></p>
+    <!-- Divider -->
+    <div class="divider">
+      <span>or quick login as</span>
     </div>
 
-    <div class="demo-credentials">
-      <h4>Demo Credentials:</h4>
-      <p><strong>Owner:</strong> owner@sipstop.com / owner123</p>
-      <p><strong>Customer:</strong> customer@sipstop.com / customer123</p>
+    <!-- Quick Demo Login Buttons -->
+    <div class="demo-login-buttons">
+      <button
+        type="button"
+        class="btn-demo btn-demo-owner"
+        (click)="quickLogin('owner')"
+        [disabled]="isLoading"
+      >
+        <span class="demo-icon">👨‍💼</span>
+        <div class="demo-text">
+          <strong>Owner Account</strong>
+          <small>Full admin access</small>
+        </div>
+      </button>
+      <button
+        type="button"
+        class="btn-demo btn-demo-customer"
+        (click)="quickLogin('customer')"
+        [disabled]="isLoading"
+      >
+        <span class="demo-icon">👤</span>
+        <div class="demo-text">
+          <strong>Customer Account</strong>
+          <small>Shopping experience</small>
+        </div>
+      </button>
+    </div>
+
+    <!-- Signup Link -->
+    <div class="signup-link">
+      <p>Don't have an account? <a routerLink="/signup" class="signup-link-text">Create one now</a></p>
+    </div>
+
+    <!-- Info Badge -->
+    <div class="info-badge">
+      <span class="badge-icon">ℹ️</span>
+      <span>Secure login with encrypted credentials</span>
     </div>
   </div>
 </div>

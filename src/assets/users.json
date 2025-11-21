@@ -97,5 +97,12 @@
     "password": "vivek123",
     "role": "customer",
     "id": 13
+  },
+  {
+    "name": "sujith",
+    "email": "sujith@gmail.com",
+    "password": "sujith123",
+    "role": "customer",
+    "id": 14
   }
 ]

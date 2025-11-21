@@ -231,4 +231,31 @@ export class AuthService {
       return of({ success: false, message: 'User not found' });
     }
   }
+
+  // Get all users (for forgot password functionality)
+  getUsers(): Observable<User[]> {
+    const apiUrl = `${environment.apiUrl}/api/users`;
+    
+    // Try backend API first
+    return this.http.get<User[]>(apiUrl).pipe(
+      map(users => {
+        const localUsers = this.getLocalStorageUsers();
+        return [...users, ...localUsers];
+      }),
+      catchError(() => {
+        // Fallback to JSON file + localStorage
+        return this.http.get<User[]>(this.usersUrl).pipe(
+          map(users => {
+            const localUsers = this.getLocalStorageUsers();
+            return [...users, ...localUsers];
+          }),
+          catchError(() => {
+            // Final fallback: localStorage only
+            const localUsers = this.getLocalStorageUsers();
+            return of(localUsers);
+          })
+        );
+      })
+    );
+  }
 }

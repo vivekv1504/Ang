@@ -30,6 +30,20 @@ interface RecentOrder {
   date: string;
 }
 
+interface TopProduct {
+  product: Product;
+  sold: number;
+  revenue: number;
+  orders: number;
+}
+
+interface TimePeriodStats {
+  period: string;
+  revenue: number;
+  orders: number;
+  topProduct: string;
+}
+
 @Component({
   selector: 'app-analytics-dashboard',
   standalone: true,
@@ -53,8 +67,24 @@ export class AnalyticsDashboardComponent implements OnInit {
   recentOrders: RecentOrder[] = [];
   monthlyRevenue: { month: string; revenue: number }[] = [];
 
+  // Time-based analysis
+  selectedTimePeriod: 'week' | 'month' | 'year' = 'month';
+  topProductsThisWeek: TopProduct[] = [];
+  topProductsThisMonth: TopProduct[] = [];
+  topProductsThisYear: TopProduct[] = [];
+  
+  weeklyStats: TimePeriodStats[] = [];
+  monthlyStats: TimePeriodStats[] = [];
+  yearlyStats: TimePeriodStats[] = [];
+
+  currentWeekRevenue = 0;
+  currentMonthRevenue = 0;
+  currentYearRevenue = 0;
+
   userName = '';
   Math = Math; // Expose Math to template
+  allOrders: Order[] = [];
+  allProducts: Product[] = [];
 
   constructor(
     private orderService: OrderService,
@@ -85,15 +115,21 @@ export class AnalyticsDashboardComponent implements OnInit {
     this.orderService.getOrders().subscribe({
       next: (orders) => {
         console.log('Orders loaded:', orders.length);
+        this.allOrders = orders;
         this.productService.getProducts().subscribe({
           next: (products) => {
             console.log('Products loaded:', products.length);
+            this.allProducts = products;
             if (orders && products) {
               this.calculateStats(orders, products);
               this.calculateCategoryData(orders);
               this.calculateTopProducts(orders, products);
               this.prepareRecentOrders(orders);
               this.calculateMonthlyRevenue(orders);
+              
+              // Calculate time-based analytics
+              this.calculateTimePeriodAnalytics(orders, products);
+              
               console.log('Analytics calculated successfully');
             }
           },
@@ -268,6 +304,262 @@ export class AnalyticsDashboardComponent implements OnInit {
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  // ============ TIME-BASED ANALYTICS ============
+
+  calculateTimePeriodAnalytics(orders: Order[], products: Product[]): void {
+    this.calculateTopProductsByWeek(orders, products);
+    this.calculateTopProductsByMonth(orders, products);
+    this.calculateTopProductsByYear(orders, products);
+    this.calculateWeeklyComparison(orders);
+    this.calculateMonthlyComparison(orders);
+    this.calculateYearlyComparison(orders);
+  }
+
+  calculateTopProductsByWeek(orders: Order[], products: Product[]): void {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay()); // Start of current week (Sunday)
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const weekOrders = orders.filter(o => new Date(o.date) >= startOfWeek);
+    this.currentWeekRevenue = weekOrders.reduce((sum, o) => sum + o.total, 0);
+
+    this.topProductsThisWeek = this.calculateTopProductsForPeriod(weekOrders, products);
+  }
+
+  calculateTopProductsByMonth(orders: Order[], products: Product[]): void {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const monthOrders = orders.filter(o => new Date(o.date) >= startOfMonth);
+    this.currentMonthRevenue = monthOrders.reduce((sum, o) => sum + o.total, 0);
+
+    this.topProductsThisMonth = this.calculateTopProductsForPeriod(monthOrders, products);
+  }
+
+  calculateTopProductsByYear(orders: Order[], products: Product[]): void {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+    const yearOrders = orders.filter(o => new Date(o.date) >= startOfYear);
+    this.currentYearRevenue = yearOrders.reduce((sum, o) => sum + o.total, 0);
+
+    this.topProductsThisYear = this.calculateTopProductsForPeriod(yearOrders, products);
+  }
+
+  private calculateTopProductsForPeriod(orders: Order[], products: Product[]): TopProduct[] {
+    const productSales = new Map<number, { sold: number; revenue: number; orders: Set<number> }>();
+
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        const productId = item.product.id;
+        if (!productSales.has(productId)) {
+          productSales.set(productId, { sold: 0, revenue: 0, orders: new Set() });
+        }
+        const sales = productSales.get(productId)!;
+        sales.sold += item.quantity;
+        sales.revenue += item.product.price * item.quantity;
+        sales.orders.add(order.id);
+      });
+    });
+
+    return Array.from(productSales.entries())
+      .map(([productId, sales]) => {
+        const product = products.find(p => p.id === productId);
+        return product ? {
+          product,
+          sold: sales.sold,
+          revenue: sales.revenue,
+          orders: sales.orders.size
+        } : null;
+      })
+      .filter((item): item is TopProduct => item !== null)
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 10);
+  }
+
+  calculateWeeklyComparison(orders: Order[]): void {
+    const now = new Date();
+    this.weeklyStats = [];
+
+    // Get last 8 weeks for comparison
+    for (let i = 7; i >= 0; i--) {
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - now.getDay() - (i * 7));
+      weekStart.setHours(0, 0, 0, 0);
+
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+
+      const weekOrders = orders.filter(o => {
+        const orderDate = new Date(o.date);
+        return orderDate >= weekStart && orderDate <= weekEnd;
+      });
+
+      const revenue = weekOrders.reduce((sum, o) => sum + o.total, 0);
+      const topProduct = this.getTopProductForOrders(weekOrders);
+
+      this.weeklyStats.push({
+        period: `Week ${this.getWeekNumber(weekStart)}`,
+        revenue,
+        orders: weekOrders.length,
+        topProduct: topProduct?.name || 'N/A'
+      });
+    }
+  }
+
+  calculateMonthlyComparison(orders: Order[]): void {
+    const now = new Date();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    this.monthlyStats = [];
+
+    // Get last 12 months
+    for (let i = 11; i >= 0; i--) {
+      const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthStart = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+      const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+
+      const monthOrders = orders.filter(o => {
+        const orderDate = new Date(o.date);
+        return orderDate >= monthStart && orderDate <= monthEnd;
+      });
+
+      const revenue = monthOrders.reduce((sum, o) => sum + o.total, 0);
+      const topProduct = this.getTopProductForOrders(monthOrders);
+
+      this.monthlyStats.push({
+        period: `${months[monthDate.getMonth()]} ${monthDate.getFullYear()}`,
+        revenue,
+        orders: monthOrders.length,
+        topProduct: topProduct?.name || 'N/A'
+      });
+    }
+  }
+
+  calculateYearlyComparison(orders: Order[]): void {
+    const now = new Date();
+    this.yearlyStats = [];
+
+    // Get last 5 years
+    for (let i = 4; i >= 0; i--) {
+      const year = now.getFullYear() - i;
+      const yearStart = new Date(year, 0, 1);
+      const yearEnd = new Date(year, 11, 31);
+
+      const yearOrders = orders.filter(o => {
+        const orderDate = new Date(o.date);
+        return orderDate >= yearStart && orderDate <= yearEnd;
+      });
+
+      const revenue = yearOrders.reduce((sum, o) => sum + o.total, 0);
+      const topProduct = this.getTopProductForOrders(yearOrders);
+
+      this.yearlyStats.push({
+        period: year.toString(),
+        revenue,
+        orders: yearOrders.length,
+        topProduct: topProduct?.name || 'N/A'
+      });
+    }
+  }
+
+  private getTopProductForOrders(orders: Order[]): Product | null {
+    if (orders.length === 0) return null;
+
+    const productSales = new Map<number, number>();
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        const currentSales = productSales.get(item.product.id) || 0;
+        productSales.set(item.product.id, currentSales + item.quantity);
+      });
+    });
+
+    if (productSales.size === 0) return null;
+
+    const topProductId = Array.from(productSales.entries())
+      .sort((a, b) => b[1] - a[1])[0][0];
+
+    return this.allProducts.find(p => p.id === topProductId) || null;
+  }
+
+  private getWeekNumber(date: Date): number {
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+  }
+
+  // UI Methods
+  selectTimePeriod(period: 'week' | 'month' | 'year'): void {
+    this.selectedTimePeriod = period;
+  }
+
+  getCurrentTopProducts(): TopProduct[] {
+    switch (this.selectedTimePeriod) {
+      case 'week':
+        return this.topProductsThisWeek;
+      case 'month':
+        return this.topProductsThisMonth;
+      case 'year':
+        return this.topProductsThisYear;
+      default:
+        return this.topProductsThisMonth;
+    }
+  }
+
+  getCurrentRevenue(): number {
+    switch (this.selectedTimePeriod) {
+      case 'week':
+        return this.currentWeekRevenue;
+      case 'month':
+        return this.currentMonthRevenue;
+      case 'year':
+        return this.currentYearRevenue;
+      default:
+        return this.currentMonthRevenue;
+    }
+  }
+
+  getCurrentPeriodStats(): TimePeriodStats[] {
+    switch (this.selectedTimePeriod) {
+      case 'week':
+        return this.weeklyStats;
+      case 'month':
+        return this.monthlyStats;
+      case 'year':
+        return this.yearlyStats;
+      default:
+        return this.monthlyStats;
+    }
+  }
+
+  getPeriodLabel(): string {
+    switch (this.selectedTimePeriod) {
+      case 'week':
+        return 'This Week';
+      case 'month':
+        return 'This Month';
+      case 'year':
+        return 'This Year';
+      default:
+        return 'This Month';
+    }
+  }
+
+  getRevenueBarWidthForProduct(revenue: number): number {
+    const currentProducts = this.getCurrentTopProducts();
+    if (currentProducts.length === 0) return 0;
+    const maxRevenue = Math.max(...currentProducts.map(p => p.revenue));
+    return maxRevenue > 0 ? (revenue / maxRevenue) * 100 : 0;
+  }
+
+  getComparisonBarHeight(revenue: number): number {
+    const stats = this.getCurrentPeriodStats();
+    if (stats.length === 0) return 0;
+    const maxRevenue = Math.max(...stats.map(s => s.revenue));
+    return maxRevenue > 0 ? (revenue / maxRevenue) * 100 : 0;
   }
 }
 
